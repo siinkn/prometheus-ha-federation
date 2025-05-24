@@ -7,6 +7,9 @@ federation_targets:
   - name: prometheus2
     host: 172.16.165.130
     port: 9090
+  - name: replicas_via_haproxy
+    host: 172.16.165.130
+    port: 9092
 
 node_exporter_targets:
   - "172.16.165.129:9100"

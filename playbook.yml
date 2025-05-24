@@ -24,3 +24,10 @@
   become: true
   roles:
     - python_app
+
+- name: Deploy Replica HAProxy for Prometheus Replicas
+  hosts: prometheus
+  become: yes
+  roles:
+    - replica_haproxy
+

@@ -1,0 +1,6 @@
+- name: restart haproxy
+  docker_container:
+    name: "{{ replica_haproxy_container_name }}"
+    state: restarted
+    recreate: true
+

@@ -1,0 +1,25 @@
+frontend replica_federation_frontend
+  bind *:{{ replica_haproxy_port }}
+  default_backend replica_federation_backends
+
+backend replica_federation_backends
+  mode http
+  option httpchk GET /
+  option httpclose
+  balance leastconn
+  timeout check 5s
+  default-server inter 5s fall 2 rise 3
+{% for backend in replica_haproxy_backends %}
+  server {{ backend.name }} {{ backend.address }} check
+{% endfor %}
+
+listen stats
+  bind *:{{ replica_haproxy_stats_port }}
+  mode http
+  stats enable
+  stats uri /stats
+  stats refresh 5s
+  stats show-node
+  stats show-legends
+  stats auth {{ replica_haproxy_stats_user }}:{{ replica_haproxy_stats_pass }}
+

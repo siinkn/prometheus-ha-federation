@@ -1,0 +1,52 @@
+- name: Ensure config path for replica HAProxy exists
+  file:
+    path: "{{ replica_haproxy_config_path | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Template config file for replica HAProxy
+  template:
+    src: replica_haproxy.cfg.j2
+    dest: "{{ replica_haproxy_config_path }}"
+  notify: restart haproxy
+
+- name: Pull HAProxy image for replicas
+  docker_image:
+    name: "{{ replica_haproxy_image }}"
+    tag: "{{ replica_haproxy_version }}"
+    source: pull
+
+- name: Run HAProxy container for replicas
+  docker_container:
+    name: "{{ replica_haproxy_container_name }}"
+    image: "{{ replica_haproxy_image }}:{{ replica_haproxy_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ replica_haproxy_port }}:{{ replica_haproxy_port }}"
+      - "{{ replica_haproxy_stats_port }}:{{ replica_haproxy_stats_port }}"
+    volumes:
+      - "{{ replica_haproxy_config_path }}:/usr/local/etc/haproxy/haproxy.cfg:ro"
+    networks: 
+      - name: haproxy_net
+    recreate: true 
+
+- name: Pull haproxy_exporter image for replicas
+  docker_image:
+    name: "{{ haproxy_exporter_image }}"
+    tag: "{{ haproxy_exporter_version }}"
+    source: pull
+
+- name: Run haproxy_exporter container for replicas
+  docker_container:
+    name: replica_haproxy_exporter
+    image: "{{ haproxy_exporter_image }}:{{ haproxy_exporter_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "9102:9102"
+    networks: 
+      - name: haproxy_net
+    command:
+      - "--haproxy.scrape-uri=http://{{ replica_haproxy_stats_user }}:{{ replica_haproxy_stats_pass }}@{{ replica_haproxy_container_name }}:{{ replica_haproxy_stats_port }}/stats;csv"
+

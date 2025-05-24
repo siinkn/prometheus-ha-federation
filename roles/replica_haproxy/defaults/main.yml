@@ -1,0 +1,19 @@
+replica_haproxy_image: "haproxy"
+replica_haproxy_version: "2.9-alpine"
+replica_haproxy_container_name: "replica-haproxy"
+
+replica_haproxy_config_path: "/opt/haproxy/replica_haproxy.cfg"
+replica_haproxy_port: 9092
+replica_haproxy_stats_port: 8405
+
+replica_haproxy_stats_user: "admin"
+replica_haproxy_stats_pass: "admin"
+
+replica_haproxy_backends:
+  - { name: "prometheus1", address: "172.16.165.129:9090" }
+  - { name: "prometheus2", address: "172.16.165.130:9090" }
+
+haproxy_exporter_image: "prom/haproxy-exporter"
+haproxy_exporter_version: "v0.15.0"
+replica_haproxy_exporter_port: 9102
+
