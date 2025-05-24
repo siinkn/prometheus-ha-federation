@@ -1,54 +1,53 @@
 # 🚀 Prometheus HA Federation Stack
 
-A production-grade, high-availability observability stack using **Prometheus Federation**, **HAProxy**, **Grafana**, **Jaeger**, **OpenTelemetry**, and **Ansible** — designed for **resilience**, **traceability**, and **operational visibility**.
+A production-grade, high-availability observability stack using [Prometheus Federation](https://prometheus.io/docs/prometheus/latest/federation/), [HAProxy](http://www.haproxy.org/), [Grafana](https://grafana.com/), [Jaeger](https://www.jaegertracing.io/), [OpenTelemetry](https://opentelemetry.io/), and [Ansible](https://www.ansible.com/) — designed for **resilience**, **traceability**, and **full-stack observability**.
 
-This project deploys seamlessly across multiple VMs using Docker Compose, fully automated by Ansible.
+This project is deployed across multiple VMs using Docker Compose, fully automated with Ansible.
 
 ---
 
-## 📐 Architecture Diagram (Updated & Labeled)
+## 📐 Architecture Diagram
 
 ```
                    ┌────────────┐
                    │  Grafana   │
                    └────┬───────┘
                         │
-              ┌─────────▼──────────┐
-              │ HAProxy (LB #1)    │
-              │ Grafana → Federation
-              └─────────┬──────────┘
+              ┌─────────▼─────────────┐
+              │ HAProxy (LB #1)       │
+              │ Grafana → Federation  │
+              └─────────┬─────────────┘
                         │
-      ┌─────────────────▼─────────────────┐
-      │      Prometheus Federation        │
-      │          (Central Node)           │
-      └────────┬──────────────┬───────────┘
-               │              │
-     ┌─────────▼────┐   ┌─────▼────────────┐
-     │ HAProxy (LB #2)                     │
-     │ Federation → Replicas               │
-     └────────┬────────────────────────────│
-              │               │
-              │               │
-    ┌─────────▼────┐   ┌──────▼─────────┐
-    │ Prometheus 1 │   │ Prometheus 2   │
-    └─────┬────────┘   └─────┬──────────┘
-          ▼                  ▼
-   ┌────────────┐      ┌────────────┐
-   │ Node Export│      │ Node Export│
-   │    (129)   │      │    (130)   │
-   └────────────┘      └────────────┘
+        ┌───────────────▼────────────────┐
+        │     Prometheus Federation      │
+        │         (Central Node)         │
+        └─────────┬────────────┬─────────┘
+                  │            │
+        ┌─────────▼────┐ ┌─────▼─────────┐
+        │ HAProxy (LB #2)         │
+        │ Federation → Replicas   │
+        └────────┬────────────────┘
+                 │
+        ┌────────▼────┐   ┌──────▼─────────┐
+        │ Prometheus1 │   │ Prometheus2    │
+        └─────┬────────┘   └─────┬──────────┘
+              ▼                  ▼
+        ┌────────────┐     ┌────────────┐
+        │ NodeExporter│     │ NodeExporter│
+        │    (129)    │     │    (130)    │
+        └────────────┘     └────────────┘
 
-             ▲
-             │
-   ┌─────────┴─────────────┐
-   │ Python App (Flask)    │
-   │ /metrics + OTEL       │
-   └─────────┬─────────────┘
-             │
-             ▼
-         ┌────────┐
-         │ Jaeger │
-         └────────┘
+                ▲
+                │
+     ┌──────────┴────────────┐
+     │ Python App (Flask)    │
+     │ /metrics + OTEL       │
+     └──────────┬────────────┘
+                │
+                ▼
+            ┌────────┐
+            │ Jaeger │
+            └────────┘
 ```
 
 ---
@@ -56,20 +55,25 @@ This project deploys seamlessly across multiple VMs using Docker Compose, fully 
 ## 🔧 Stack Components
 
 ### ✅ Metrics
-- `node_exporter`: system-level metrics from all nodes
-- `prometheus (2x)`: HA scraping from exporters + app
-- `prometheus_federation`: centralized metrics aggregation
-- `haproxy_exporter`: exposes internal HAProxy stats
+- `node_exporter`: system-level metrics from each node
+- `prometheus` (2x): HA replicas scraping metrics
+- `prometheus_federation`: centralized aggregation node
+- `haproxy_exporter`: exposes HAProxy metrics
 
 ### ✅ Tracing
-- `python_app (Flask)`: serves Prometheus metrics + sends OTEL spans
+- `python_app (Flask)`: exposes `/metrics` and sends OpenTelemetry spans
 - `jaeger`: collects, stores, and visualizes traces
 
 ### ✅ Load Balancing
-- **HAProxy #1**: exposes a **stable endpoint** to Grafana for accessing the Federation node.  
-  📌 If Federation is restarted or relocated, Grafana remains unaffected.
-- **HAProxy #2**: enables **load-balanced and fault-tolerant access** from Federation → Prometheus replicas.  
-  📌 If one replica goes down, Federation still receives metrics without interruption.
+
+#### 🔁 HAProxy #1 – Grafana → Federation
+- Exposes a **stable endpoint** to Grafana, even if Federation restarts or relocates.
+- Prevents downtime in dashboards due to federation issues.
+
+#### 🔁 HAProxy #2 – Federation → Replicas
+- Enables **load-balanced and fault-tolerant access** from Federation to Prometheus replicas.
+- Ensures availability even if one replica fails.
+- Distributes read traffic evenly.
 
 ---
 
@@ -77,100 +81,99 @@ This project deploys seamlessly across multiple VMs using Docker Compose, fully 
 
 ### 🛠️ Prerequisites
 
-- Ansible installed on control machine
+- [Ansible](https://www.ansible.com/) on the control machine
 - Docker & Docker Compose on all target nodes
 - SSH access configured in `hosts.ini`
 
-### 📂 Deploy in 3 Steps
+### 🧪 Deploy in 3 Steps
 
 ```bash
 # 1. Clone the repo
 git clone https://github.com/siinkn/prometheus-ha-federation.git
 cd prometheus-ha-federation
 
-# 2. Edit inventory
+# 2. Configure inventory
 nano inventories/dev/hosts.ini
 
-# 3. Run full deployment
+# 3. Deploy everything
 ansible-playbook -i inventories/dev/hosts.ini playbook.yml
 ```
 
-> You can run only HAProxy (replica LB) with:
-> `--tags replica_haproxy`
+> Optional: Deploy only HAProxy (Replica LB)  
+> `ansible-playbook ... --tags replica_haproxy`
 
 ---
 
-## 📊 Grafana Dashboard
+## 📊 Grafana
 
-- Access: `http://<grafana-ip>:3000`
-- Login: `admin / admin`
-- Prometheus source: `http://<haproxy-ip>:9091`
+- **URL**: `http://<grafana-ip>:3000`
+- **Login**: `admin / admin`
+- **Data Source**: `http://<haproxy-ip>:9091`
 
-### Recommended Panels
+### 🔍 Recommended Panels
 
 | Panel | PromQL |
 |-------|--------|
-| App Latency (p95) | `histogram_quantile(0.95, rate(python_app_request_latency_seconds_bucket[1m]))` |
-| Request Rate | `rate(python_app_requests_total[1m])` |
-| Backend Sessions | `haproxy_backend_sessions_total{backend="prometheus_backends"}` |
-| Replica Health | `haproxy_server_up{backend="prometheus_backends"}` |
-| Load Distribution | `rate(haproxy_server_sessions_total[5m]) by (server)` |
+| **App Latency (p95)** | `histogram_quantile(0.95, rate(python_app_request_latency_seconds_bucket[1m]))` |
+| **Request Rate** | `rate(python_app_requests_total[1m])` |
+| **Backend Sessions** | `haproxy_backend_sessions_total{backend="prometheus_backends"}` |
+| **Replica Health** | `haproxy_server_up{backend="prometheus_backends"}` |
+| **Load Distribution** | `rate(haproxy_server_sessions_total[5m]) by (server)` |
 
 ---
 
-## 🔭 Jaeger UI
+## 🔭 Jaeger
 
-- Access: `http://<jaeger-ip>:16686`
-- Service: `python-metrics-app`
-- Features: span search, latency graph, trace pathing, service map
+- **UI**: `http://<jaeger-ip>:16686`
+- **Service**: `python-metrics-app`
+- **Features**: span search, service map, trace flow, latency breakdown
 
 ---
 
-## ✅ Why This Architecture?
+## 🤔 Why This Architecture?
 
-This setup uses **two layers of HAProxy** for maximum resilience:
+This stack uses **two layers of HAProxy** for precise control, stability, and fault tolerance:
 
-- 🔁 **HAProxy #1 (Grafana ↔ Federation)**:  
-  Decouples Grafana from direct dependency on Federation node.  
-  Keeps dashboards online even if the Federation container restarts.
+### 🔁 HAProxy #1 – Grafana ↔ Federation
+- Abstracts Grafana away from direct contact with the Federation node.
+- Keeps dashboards live even during container restarts or redeployments.
 
-- 🔁 **HAProxy #2 (Federation ↔ Replicas)**:  
-  Ensures Prometheus Federation can always fetch metrics, even if one replica fails.  
-  Load balancing helps evenly distribute read traffic, preventing overload.
+### 🔁 HAProxy #2 – Federation ↔ Replicas
+- Adds a high-availability layer for scraping from multiple replicas.
+- Ensures the Federation node always has access to data.
+- Simplifies backend switching or replica scaling.
 
-This design achieves:
-
-- True **HA with decoupling** between all components
-- **Seamless recovery** from replica/node failure
-- **Unified access points** for external tools (Grafana, alerting systems)
-- **Operational clarity** via exporters and metrics from both HAProxy layers
+**This architecture delivers:**
+- 🔒 Reliable external access via stable HAProxy frontends
+- 🔄 Continuous Federation-level metric access
+- 🧠 Modular, extensible structure with minimal SPOFs
+- 📈 Clear observability for all HAProxy layers through exporters
 
 ---
 
 ## 🧩 Extending This Stack
 
-Plug in additional observability tools:
-
-- **Alertmanager** → alert routing via email, Slack, Opsgenie
-- **Loki + Promtail** → for logs with Grafana integration
-- **Tempo** → OTEL-native distributed tracing
-- **Kubernetes targets** → via `kubernetes_sd_config`
-- **SLO monitoring** → using `prometheus-mixin` or `nobl9`
+| Tool | Purpose |
+|------|---------|
+| [Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/) | Alert routing (email, Slack, Opsgenie) |
+| [Loki + Promtail](https://grafana.com/oss/loki/) | Log aggregation with Grafana |
+| [Tempo](https://grafana.com/oss/tempo/) | OTEL-native distributed tracing |
+| Kubernetes SD | Add Kubernetes scrape configs for cluster metrics |
+| SLO Dashboards | Integrate `prometheus-mixin` or tools like `nobl9` |
 
 ---
 
 ## ✅ SRE Readiness Checklist
 
-- [x] Prometheus replicas run independently
-- [x] Federation node aggregates via HAProxy LB
-- [x] Grafana accesses federation via stable HAProxy endpoint
-- [x] HAProxy #2 load balances Federation → Replicas
-- [x] Flask app exposes metrics + sends OTEL traces
-- [x] Jaeger receives + visualizes spans
-- [x] All exporters version-pinned (no `latest`)
-- [x] HAProxy metrics endpoint is authenticated
-- [x] Docker Compose setup is idempotent
-- [x] Infrastructure is fully automated via Ansible
+- [x] Prometheus replicas scrape independently
+- [x] Federation aggregates via HAProxy LB
+- [x] Grafana connects via HAProxy #1 (stable access)
+- [x] Federation connects to replicas via HAProxy #2
+- [x] Flask app emits metrics + traces
+- [x] Jaeger visualizes OTEL spans
+- [x] Exporters version-pinned
+- [x] HAProxy stats protected with auth
+- [x] Infrastructure fully automated via Ansible
 
 ---
 
