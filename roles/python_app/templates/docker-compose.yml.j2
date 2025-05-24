@@ -1,0 +1,18 @@
+services:
+  python_app:
+    image: {{ python_app_image }}
+    ports:
+      - "{{ python_app_port }}:5000"
+    environment:
+      - JAEGER_AGENT_HOST=jaeger-jaeger-1
+      - OTEL_SERVICE_NAME=python-metrics-app
+      - OTEL_EXPORTER_JAEGER_AGENT_HOST=jaeger-jaeger-1
+      - OTEL_EXPORTER_JAEGER_AGENT_PORT={{ jaeger_agent_port | default(6831) }}
+    restart: always
+    networks:
+      - monitoring_net
+
+networks:
+  monitoring_net:
+    external: true
+

@@ -1,0 +1,31 @@
+# Docker image and version for HAProxy
+haproxy_image: "haproxy"
+haproxy_version: "2.9-alpine"
+
+# Port for exposing Prometheus through HAProxy
+haproxy_port: 9091
+
+# Name of the HAProxy container
+haproxy_container_name: "haproxy"
+
+# Path to the HAProxy config file on the host
+haproxy_config_path: "/opt/haproxy/haproxy.cfg"
+
+# Port for exposing stats haproxy
+haproxy_stats_port: 8404
+
+# Prometheus backend nodes (used in template)
+prometheus_backends:
+  - { name: "prometheus1", address: "172.16.165.129:9090" }
+  - { name: "prometheus2", address: "172.16.165.130:9090" }
+
+
+
+haproxy_exporter_image: "prom/haproxy-exporter"
+haproxy_exporter_version: "v0.15.0"
+
+
+haproxy_stats_user: "admin"
+haproxy_stats_pass: "admin"
+ 
+

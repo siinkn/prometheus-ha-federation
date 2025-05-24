@@ -1,0 +1,13 @@
+---
+- name: restart haproxy
+  docker_container:
+    name: "{{ haproxy_container_name }}"
+    image: "{{ haproxy_image }}:{{ haproxy_version }}"
+    state: started
+    recreate: true
+    published_ports:
+      - "{{ haproxy_port }}:{{ haproxy_port }}"
+      - "{{ haproxy_stats_port }}:{{ haproxy_stats_port }}"
+    volumes:
+      - "{{ haproxy_config_path }}:/usr/local/etc/haproxy/haproxy.cfg:ro"
+

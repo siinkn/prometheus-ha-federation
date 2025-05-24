@@ -1,0 +1,26 @@
+- name: Deploy Prometheus node
+  hosts: prometheus
+  become: yes
+
+  roles:
+    - prometheus
+    - node_exporter
+
+- name: stack VM3 
+  hosts: grafana
+  become: yes
+  roles:
+    - federation_stack
+
+
+- name: jaeger
+  become: true
+  hosts: jaeger-host
+  roles:
+    - jaeger
+
+- name: Deploy Python App
+  hosts: python_app
+  become: true
+  roles:
+    - python_app

@@ -1,0 +1,5 @@
+- name: Render only HAProxy config (test purpose)
+  template:
+    src: haproxy.cfg.j2
+    dest: /tmp/test-haproxy.cfg
+

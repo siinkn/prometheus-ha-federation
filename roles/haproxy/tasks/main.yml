@@ -1,0 +1,57 @@
+- name: Ensure HAProxy config directory exists
+  file:
+    path: "{{ haproxy_config_path | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Template HAProxy config file
+  template:
+    src: haproxy.cfg.j2
+    dest: "{{ haproxy_config_path }}"
+  notify: restart haproxy
+
+- name: Ensure Docker network for HAProxy exists
+  community.docker.docker_network:
+    name: haproxy_net
+    state: present
+    
+- name: Pull HAProxy image
+  docker_image:
+    name: "{{ haproxy_image }}"
+    tag: "{{ haproxy_version }}"
+    source: pull
+
+- name: Run HAProxy container
+  docker_container:
+    name: "{{ haproxy_container_name }}"
+    image: "{{ haproxy_image }}:{{ haproxy_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ haproxy_port }}:{{ haproxy_port }}"
+      - "{{ haproxy_stats_port }}:{{ haproxy_stats_port }}"
+    volumes:
+      - "{{ haproxy_config_path }}:/usr/local/etc/haproxy/haproxy.cfg:ro"
+    networks: 
+      - name: haproxy_net
+    recreate: true 
+
+- name: Pull haproxy_exporter image
+  docker_image:
+    name: "{{ haproxy_exporter_image }}"
+    tag: "{{ haproxy_exporter_version }}"
+    source: pull
+
+- name: Run haproxy_exporter container
+  docker_container:
+    name: haproxy_exporter
+    image: "{{ haproxy_exporter_image }}:{{ haproxy_exporter_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "9101:9101"
+    networks: 
+      - name: haproxy_net
+    command:
+      - "--haproxy.scrape-uri=http://{{ haproxy_stats_user }}:{{ haproxy_stats_pass }}@{{ haproxy_container_name }}:{{ haproxy_stats_port }}/stats;csv"
+

@@ -1,0 +1,16 @@
+- name: Create /opt/python_app directory
+  file:
+    path: /opt/python_app
+    state: directory
+    mode: '0755'
+
+- name: Deploy Python metrics app using Docker Compose
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/python_app/docker-compose.yml
+
+- name: Start the Python app
+  shell: docker compose up -d
+  args:
+    chdir: /opt/python_app
+

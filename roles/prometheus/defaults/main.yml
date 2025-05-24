@@ -1,0 +1,7 @@
+prometheus_image: "bitnami/prometheus"
+prometheus_version: "3.3.1"
+prometheus_port: 9090
+docker_compose_path: "/opt/prometheus"
+prometheus_container_name: "prometheus_{{ ansible_hostname }}"
+jaeger_metrics_port: 14269
+

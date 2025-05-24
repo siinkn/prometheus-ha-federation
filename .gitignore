@@ -1,0 +1,10 @@
+*.retry
+*.log
+__pycache__/
+*.pyc
+*.swp
+.venv/
+.env
+*.tar
+.vscode/
+.idea/

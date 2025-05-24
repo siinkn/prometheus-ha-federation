@@ -1,0 +1,16 @@
+- name: Create Jaeger directory
+  file:
+    path: /opt/jaeger
+    state: directory
+    mode: '0755'
+
+- name: Deploy Jaeger
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/jaeger/docker-compose.yml
+
+- name: Start Jaeger
+  shell: docker compose up -d
+  args:
+    chdir: /opt/jaeger
+

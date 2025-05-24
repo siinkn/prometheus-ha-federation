@@ -1,0 +1,27 @@
+- name: Create federation directory
+  file:
+    path: "/opt/prometheus_federation"
+    state: directory
+    mode: '0755'
+
+- name: Create config directory
+  file:
+    path: "/opt/prometheus_federation/config"
+    state: directory
+    mode: '0755'
+
+- name: Template prometheus.yml
+  template:
+    src: prometheus.yml.j2
+    dest: "/opt/prometheus_federation/config/prometheus.yml"
+
+- name: Template docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "/opt/prometheus_federation/docker-compose.yml"
+
+- name: Start federation Prometheus
+  command: docker compose up -d
+  args:
+    chdir: "/opt/prometheus_federation"
+

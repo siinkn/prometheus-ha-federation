@@ -1,0 +1,7 @@
+jaeger_image: "jaegertracing/all-in-one:1.53"
+jaeger_container_name: "jaeger"
+jaeger_ui_port: 16686
+jaeger_agent_port: 6831
+jaeger_collector_port: 14268
+jaeger_metrics_port: 14269
+

@@ -1,0 +1,4 @@
+- name: Debug backend list
+  debug:
+    var: prometheus_backends
+

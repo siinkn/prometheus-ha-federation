@@ -1,0 +1,19 @@
+- name: Include Prometheus Federation
+  include_role:
+    name: prometheus_federation
+
+- name: Include HAProxy
+  include_role:
+    name: haproxy
+
+- name: Include Grafana
+  include_role:
+    name: grafana
+
+- name: Include Node Exporter
+  include_role:
+    name: node_exporter
+
+
+
+

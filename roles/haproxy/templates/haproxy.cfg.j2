@@ -1,0 +1,26 @@
+frontend prometheus_frontend
+  bind *:{{ haproxy_port }}
+  default_backend prometheus_backends
+
+backend prometheus_backends
+  mode http
+  option httpchk GET /
+  option httpclose
+  balance leastconn
+  timeout check 5s
+  default-server inter 5s fall 2 rise 3
+{% for backend in prometheus_backends %}
+  server {{ backend.name }} {{ backend.address }} check
+{% endfor %}
+
+
+listen stats
+  bind *:{{ haproxy_stats_port }}
+  mode http
+  stats enable
+  stats uri /stats
+  stats refresh 5s
+  stats show-node
+  stats show-legends
+  stats auth {{ haproxy_stats_user }}:{{ haproxy_stats_pass }}
+

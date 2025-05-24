@@ -1,0 +1,13 @@
+---
+- name: restart prometheus
+  docker_container:
+    name: "{{ prometheus_container_name }}"
+    image: "{{ prometheus_image }}:{{ prometheus_version }}"
+    state: started
+    recreate: true
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ prometheus_port }}:{{ prometheus_port }}"
+    volumes:
+      - "{{ docker_compose_path }}/config:/opt/bitnami/prometheus/conf"
+

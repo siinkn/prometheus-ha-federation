@@ -1,0 +1,7 @@
+- name: Run Node Exporter container
+  docker_container:
+    name: "{{ node_exporter_container_name }}"
+    image: "{{ node_exporter_image }}:{{ node_exporter_version }}"
+    state: started
+    network_mode: host
+

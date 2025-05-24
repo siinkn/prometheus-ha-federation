@@ -1,0 +1,33 @@
+---
+# tasks file for roles/prometheus
+
+- name: Make sure Prometheus directory exists
+  file:
+    path: "{{ docker_compose_path }}"
+    state: directory
+    mode: '0755'
+
+- name: checking /opt/prometheus exists
+  file:
+    path: "{{ docker_compose_path }}/config"
+    state: directory
+    mode: '0755'
+
+- name: Template promehteus
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ docker_compose_path }}/config/prometheus.yml"
+  notify: restart prometheus
+
+
+
+- name: template docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ docker_compose_path }}/docker-compose.yml"
+  notify: restart prometheus
+
+- name:
+  command: docker compose up -d
+  args:
+    chdir: "{{ docker_compose_path }}"

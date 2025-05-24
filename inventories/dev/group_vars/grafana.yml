@@ -1,0 +1,15 @@
+is_federation_server: true
+
+federation_targets:
+  - name: prometheus1
+    host: 172.16.165.129
+    port: 9090
+  - name: prometheus2
+    host: 172.16.165.130
+    port: 9090
+
+node_exporter_targets:
+  - "172.16.165.129:9100"
+  - "172.16.165.130:9100"
+  - "172.16.165.131:9100"
+

@@ -1,0 +1,16 @@
+services:
+  jaeger:
+    image: {{ jaeger_image }}
+    ports:
+      - "{{ jaeger_ui_port }}:16686"
+      - "{{ jaeger_agent_port }}:6831/udp"
+      - "{{ jaeger_collector_port }}:14268"
+      - "{{ jaeger_metrics_port }}:14269"
+    restart: always
+    networks:
+      - monitoring_net
+networks:
+  monitoring_net:
+    name: monitoring_net
+    driver: bridge
+

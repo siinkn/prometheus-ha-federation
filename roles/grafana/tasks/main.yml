@@ -1,0 +1,15 @@
+- name: Create Grafana data volume
+  docker_volume:
+    name: "{{ grafana_data_volume }}"
+
+- name: Run Grafana container
+  docker_container:
+    name: "{{ grafana_container_name }}"
+    image: "{{ grafana_image }}:{{ grafana_version }}"
+    state: started
+    restart_policy: unless-stopped
+    published_ports:
+      - "{{ grafana_port }}:{{ grafana_port }}"
+    volumes:
+      - "{{ grafana_data_volume }}:/var/lib/grafana"
+

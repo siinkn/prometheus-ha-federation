@@ -1,0 +1,14 @@
+services:
+  prometheus_federation:
+    image: bitnami/prometheus:3.3.1
+    container_name: prometheus_federation
+    volumes:
+      - ./config/:/opt/bitnami/prometheus/conf/
+    ports:
+      - "9191:9090"
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+

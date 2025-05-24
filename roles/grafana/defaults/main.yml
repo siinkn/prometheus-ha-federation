@@ -1,0 +1,13 @@
+# Docker image and version for Grafana
+grafana_image: "grafana/grafana"
+grafana_version: "10.4.2"
+
+# Port mapping (host:container)
+grafana_port: 3000
+
+# Docker volume name for persistent storage
+grafana_data_volume: "grafana_data"
+
+# Container name
+grafana_container_name: "grafana"
+

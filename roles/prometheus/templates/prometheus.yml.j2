@@ -1,0 +1,78 @@
+#{% if is_federation_server | default(false) %}
+# 🔹 This is a Prometheus Federation Server configuration
+
+#global:
+#  scrape_interval: 15s
+
+#scrape_configs:
+#{% for target in federation_targets %}
+#  - job_name: '{{ target.name }}'
+#    honor_labels: true
+#    metrics_path: '/federate'
+#    params:
+#      'match[]':
+#        - '{__name__=~".+"}'
+#    static_configs:
+      - targets: ['{{ target.host }}:{{ target.port }}']
+#{% endfor %}
+
+#  - job_name: 'node_exporter'
+#    static_configs:
+#      - targets:
+#{% for target in node_exporter_targets %}
+#          - '{{ target }}'
+#{% endfor %}
+#
+#{% else %}
+# 🔹 This is a standard Prometheus node configuration
+
+global:
+  scrape_interval: 15s
+  external_labels:
+    prometheus_instance: "{{ inventory_hostname }}"
+
+scrape_configs:
+  - job_name: 'self'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          instance: '{{ inventory_hostname }}'
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets:
+{% for target in node_exporter_targets %}
+          - '{{ target }}'
+{% endfor %}
+{% endif %}
+
+
+{% if 'jaeger-host' in groups %}
+  - job_name: 'jaeger'
+    static_configs:
+      - targets:
+{% for host in groups['jaeger-host'] %}
+          - '{{ hostvars[host]["ansible_host"] | default(host) }}:{{ jaeger_metrics_port }}'
+{% endfor %}
+{% endif %}
+
+
+{% if python_app_targets is defined %}
+  - job_name: 'python_app'
+    static_configs:
+      - targets:
+{% for target in python_app_targets %}
+          - '{{ target }}'
+{% endfor %}
+{% endif %}
+
+
+{% if 'haproxy-host' in groups %}
+  - job_name: 'haproxy_exporter'
+    static_configs:
+      - targets:
+{% for host in groups['haproxy-host'] %}
+          - '{{ hostvars[host]["ansible_host"] | default(host) }}:9101'
+{% endfor %}
+{% endif %}
+

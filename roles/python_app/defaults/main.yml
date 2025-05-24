@@ -1,0 +1,6 @@
+python_app_image: python-metrics-app:1.0.2
+python_app_port: 5000
+jaeger_agent_host: "{{ hostvars['jaeger-host']['ansible_host'] | default('localhost') }}"
+jaeger_agent_host: "localhost"
+jaeger_agent_port: 6831
+
